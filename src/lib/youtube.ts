@@ -14,6 +14,7 @@ export type VideoDetails = {
   likes: number;
   comments: number;
   thumbnailURL: string;
+  videoURL: string;
   publishedAt: string;
 };
 
@@ -99,6 +100,7 @@ export async function fetchVideoDetails(videoIds: string[]): Promise<VideoDetail
         likes: Number(stats?.likeCount || 0),
         comments: Number(stats?.commentCount || 0),
         thumbnailURL: bestThumb?.url || "",
+        videoURL: `https://www.youtube.com/watch?v=${v.id}`,
         publishedAt: snip.publishedAt || new Date().toISOString(),
       });
     }

@@ -22,12 +22,15 @@ model Video {
   job          ScrapeJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
   jobId        String
   videoId      String
+  videoURL     String
+  audioURL     String?
   title        String
   views        Int       @default(0)
   likes        Int       @default(0)
   comments     Int       @default(0)
   thumbnailURL String
   transcript   String?
+  transcriptURL String?
   publishedAt  DateTime
   scrapedAt    DateTime  @default(now())
 

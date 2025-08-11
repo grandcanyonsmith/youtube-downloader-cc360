@@ -3,10 +3,18 @@ import { NextRequest } from "next/server";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
-  const jobId = searchParams.get("jobId");
-  if (!jobId) return new Response(JSON.stringify({ rows: [] }), { status: 200 });
-  const videos = await prisma.video.findMany({ where: { jobId }, orderBy: { views: "desc" } });
+  const q = searchParams.get("query") || undefined;
+
+  const job = await prisma.scrapeJob.findFirst({
+    where: q ? { query: q } : undefined,
+    orderBy: { createdAt: "desc" },
+  });
+
+  if (!job) return Response.json({ jobId: null, rows: [] });
+
+  const videos = await prisma.video.findMany({ where: { jobId: job.id }, orderBy: { views: "desc" } });
   return Response.json({
+    jobId: job.id,
     rows: videos.map((v) => ({
       videoId: v.videoId,
       videoURL: (v as unknown as { videoURL?: string }).videoURL || `https://www.youtube.com/watch?v=${v.videoId}`,
@@ -17,7 +25,7 @@ export async function GET(req: NextRequest) {
       comments: v.comments,
       thumbnailURL: v.thumbnailURL,
       transcript: v.transcript || undefined,
-      transcriptURL: v.transcriptURL || undefined,
+      transcriptURL: (v as unknown as { transcriptURL?: string }).transcriptURL || undefined,
       publishedAt: v.publishedAt.toISOString(),
     })),
   });

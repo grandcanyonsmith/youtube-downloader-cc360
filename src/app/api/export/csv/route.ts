@@ -11,6 +11,8 @@ export async function GET(req: NextRequest) {
   const csv = Papa.unparse(
     videos.map((v) => ({
       videoId: v.videoId,
+      videoURL: (v as unknown as { videoURL?: string }).videoURL || `https://www.youtube.com/watch?v=${v.videoId}`,
+      audioURL: (v as unknown as { audioURL?: string }).audioURL || "",
       title: v.title,
       views: v.views,
       likes: v.likes,
