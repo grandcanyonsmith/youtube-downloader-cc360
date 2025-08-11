@@ -35,11 +35,22 @@ export async function POST(req: NextRequest) {
         merged = merged.sort((a, b) => b.views - a.views);
 
         sseStream(controller, { type: "info", message: "Fetching transcripts, downloading audio, and saving..." });
+        // Defensive migration: ensure audioURL column exists in production DB
+        try {
+          await prisma.$executeRawUnsafe('ALTER TABLE "Video" ADD COLUMN IF NOT EXISTS "audioURL" text');
+        } catch {}
         let idx = 0;
         for (const v of merged) {
           idx += 1;
           sseStream(controller, { type: "progress", current: idx, total: merged.length });
-          const existing = await prisma.video.findFirst({ where: { videoId: v.videoId }, orderBy: { scrapedAt: "desc" } });
+          let existing = null as (typeof prisma.video extends { findFirst: any } ? Awaited<ReturnType<typeof prisma.video.findFirst>> : any);
+          try {
+            existing = await prisma.video.findFirst({ where: { videoId: v.videoId }, orderBy: { scrapedAt: "desc" } });
+          } catch (e) {
+            // Try to create missing column then retry once
+            try { await prisma.$executeRawUnsafe('ALTER TABLE "Video" ADD COLUMN IF NOT EXISTS "audioURL" text'); } catch {}
+            existing = await prisma.video.findFirst({ where: { videoId: v.videoId }, orderBy: { scrapedAt: "desc" } });
+          }
           if (existing && existing.transcript) {
             await prisma.video.create({
               data: {
