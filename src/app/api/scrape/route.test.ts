@@ -1,9 +1,0 @@
-import { describe, it, expect } from '@jest/globals';
-
-describe('placeholder', () => {
-  it('runs', () => {
-    expect(1 + 1).toBe(2);
-  });
-});
-
-
