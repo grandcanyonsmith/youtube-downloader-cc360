@@ -1,36 +1,33 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+YouTube Channel Scraper – Next.js 14 + Prisma + Supabase
 
-## Getting Started
+Features
+- Input a YouTube channel URL/username/handle
+- Scrape latest 100 videos, then sort by most viewed
+- Collect title, views, likes, comments, thumbnail URL, transcript (with optional AI fallback)
+- Save results to Postgres (Supabase/Railway) via Prisma
+- Show real-time progress (SSE)
+- Export CSV and Excel
 
-First, run the development server:
+Setup
+1. Copy `.env.example` → `.env.local` and fill values:
+   - `DATABASE_URL` (Supabase/Railway Postgres)
+   - `YOUTUBE_API_KEY`
+   - Optional: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_BUCKET`
+   - Optional: `OPENAI_API_KEY`, set `ENABLE_WHISPER_FALLBACK=true` to enable AI transcript fallback
+2. Install deps: `npm install`
+3. Generate Prisma client: `npx prisma generate`
+4. Push schema: `npx prisma db push`
+5. Dev: `npm run dev`
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Deploy
+- Vercel for frontend+backend (App Router API routes)
+- Supabase for Postgres + Storage
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+E2E Flow
+- Enter channel query → backend resolves to channelId
+- Fetch latest 100 videos → fetch stats → sort desc by views
+- Enrich with transcript → upload thumbnail to Supabase (optional)
+- Persist to DB → render table → export CSV/Excel
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+CI/CD
+- Add GitHub Actions or Vercel CI as desired
