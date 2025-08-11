@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import type { Video as VideoModel } from "@prisma/client";
 import { fetchLatestVideos, fetchVideoDetails, resolveChannelId } from "@/lib/youtube";
 import { getTranscriptText, downloadAndUploadM4A } from "@/lib/transcript";
 import { uploadThumbnailFromUrl, uploadTranscriptText } from "@/lib/storage";
@@ -43,10 +44,10 @@ export async function POST(req: NextRequest) {
         for (const v of merged) {
           idx += 1;
           sseStream(controller, { type: "progress", current: idx, total: merged.length });
-          let existing = null as (typeof prisma.video extends { findFirst: any } ? Awaited<ReturnType<typeof prisma.video.findFirst>> : any);
+          let existing: VideoModel | null = null;
           try {
             existing = await prisma.video.findFirst({ where: { videoId: v.videoId }, orderBy: { scrapedAt: "desc" } });
-          } catch (e) {
+          } catch {
             // Try to create missing column then retry once
             try { await prisma.$executeRawUnsafe('ALTER TABLE "Video" ADD COLUMN IF NOT EXISTS "audioURL" text'); } catch {}
             existing = await prisma.video.findFirst({ where: { videoId: v.videoId }, orderBy: { scrapedAt: "desc" } });

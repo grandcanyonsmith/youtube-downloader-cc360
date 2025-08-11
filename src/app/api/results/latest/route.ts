@@ -12,6 +12,11 @@ export async function GET(req: NextRequest) {
 
   if (!job) return Response.json({ jobId: null, rows: [] });
 
+  // Defensive migration: ensure audioURL column exists
+  try {
+    await prisma.$executeRawUnsafe('ALTER TABLE "Video" ADD COLUMN IF NOT EXISTS "audioURL" text');
+  } catch {}
+
   const videos = await prisma.video.findMany({ where: { jobId: job.id }, orderBy: { views: "desc" } });
   return Response.json({
     jobId: job.id,
